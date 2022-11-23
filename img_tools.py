@@ -1,10 +1,43 @@
 from time import localtime, strftime
+from random import randint
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageDraw, ImageFont
+
+from database import IdsDatabase
 
 
-def create_rgb_wallpaper(resolution: tuple) -> None:
+def random_logo() -> None:
+    # TODO: Change text color between black and white due to background color
+    red, green, blue = randint(0, 255), randint(0, 255), randint(0, 255)
+    background = Image.new(mode='RGB', size=(600, 600), color=(red,green,blue))
+
+    # Get a drawing context
+    draw = ImageDraw.Draw(background)
+    x, y = 140, 250
+    unique_id = str(_get_unique_id())
+    # Use a true type font
+    font = ImageFont.truetype("./fonts/Ubuntu-B.ttf", size=120)
+    # Draw text
+    draw.text(xy=(x, y), text=unique_id, font=font, fill=(255,255,255))
+    path = f"./images/unique_ids/unique_id_{unique_id}.jpg"
+    background.save(path)
+    print(f"New unique id save to - {path}")
+
+
+def _get_unique_id() -> int:
+    db = IdsDatabase()
+    exist_ids = db.get_ids()
+    while True:
+        guess_num = randint(10_000, 100_000)
+        if guess_num not in exist_ids:
+            db.insert_new_id(guess_num)
+            db.close()
+            return guess_num
+
+
+
+def rgb_wallpaper(resolution: tuple) -> None:
     height, width = resolution
     red = np.zeros(resolution)
     green = np.zeros(resolution)
@@ -66,8 +99,7 @@ def dilate(cycles: int, image: Image.Image) -> Image.Image:
 
 
 def main() -> None:
-    resolution = (2_532, 1_170)
-    create_rgb_wallpaper(resolution)
+    random_logo()
 
 
 if __name__ == '__main__':
